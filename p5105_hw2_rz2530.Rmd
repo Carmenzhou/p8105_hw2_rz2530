@@ -7,15 +7,11 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-## Problem 1
-
-```{r setup}
 library(tidyverse)
 library(readxl)
 ```
 
+## Problem 1
 
 ```{r}
 path_to_data = "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx"
@@ -96,9 +92,69 @@ month_df
 precip_df
 ```
 
-This dataset contains information from the Mr. Trashwheel trash collector in Baltimore, Maryland. As trash enters the inner harbor, the trashwheel collects that trash, and stores it in a dumpster. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. In this dataset:
+# write something about the data set
+The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. In this dataset:
 
 * The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.
+
+
+## Problem 2
+
+#load and clean data
+```{r}
+
+rm(list = ls())
+
+ny_df = 
+  read_csv(
+    "./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>%
+  janitor::clean_names() %>%
+  select(line:entry, vending, ada)  %>%
+  mutate(entry = recode(entry, 'YES' = TRUE, 'NO' = FALSE)) 
+```
+```{r}
+ny_df
+```
+# write something about the data set
+This dataset is NYC transit data which contains information related to subway stations.It contains variables: line, station name, latitude, longitude, entry, entrance_type, vending, ada, and route1 to route11:
+
+* This dataset has a total number of `r nrow(ny_df)` observations and `r ncol(ny_df)` columns.
+* We clean the columns and recode 'entry' from a character variable into a logical variable.
+* This dataset is not tidy, especially for rounte data.
+
+#Tidy data
+
+```{r}
+ny_tidy = 
+  ny_df %>% 
+  mutate(
+    route8 = as.character(route8),
+    route9 = as.character(route9),
+    route10 = as.character(route10),
+    route11 = as.character(route11)) %>% 
+  pivot_longer(
+    route1:route11,
+    names_to = "route_name", 
+    values_to = "route_number") %>% 
+  drop_na(route_number)
+```
+
+```{r}
+ny_df %>% distinct(station_name, line) %>% nrow
+ny_df %>% distinct(station_name, line, ada) %>% filter(ada == TRUE) %>% nrow
+(ny_tidy %>% filter(vending == 'NO') %>% summarise(sum(entry) / n()))
+```
+
+
+* There are `r ny_df %>% distinct(station_name, line) %>% nrow` distinct stations
+* `r ny_df %>% distinct(station_name, line, ada) %>% filter(ada == TRUE) %>% nrow ` are ADA compliant
+* `r (ny_tidy %>% filter(vending == 'NO') %>% summarise(sum(entry) / n()))*100` percent of station entrances/exits without vending allow entrance.
+
+
+
+
+
+
 
 
