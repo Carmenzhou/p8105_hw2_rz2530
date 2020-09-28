@@ -1,0 +1,15 @@
+---
+title: "homework 2"
+author: "Ruwen Zhou"
+date: "9/28/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+
+
