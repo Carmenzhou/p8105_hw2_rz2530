@@ -1,5 +1,5 @@
 ---
-title: "homework 2"
+title: "Homework 2"
 author: "Ruwen Zhou"
 date: "9/28/2020"
 output: github_document
@@ -11,7 +11,7 @@ library(tidyverse)
 library(readxl)
 ```
 
-## Problem 1
+# Problem 1
 
 ```{r}
 path_to_data = "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx"
@@ -92,16 +92,16 @@ month_df
 precip_df
 ```
 
-# write something about the data set
+## write something about the data set
 The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. In this dataset:
 
 * The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.
 
 
-## Problem 2
+# Problem 2
 
-#load and clean data
+## load and clean data
 ```{r}
 
 rm(list = ls())
@@ -116,14 +116,14 @@ ny_df =
 ```{r}
 ny_df
 ```
-# write something about the data set
+## write something about the data set
 This dataset is NYC transit data which contains information related to subway stations.It contains variables: line, station name, latitude, longitude, entry, entrance_type, vending, ada, and route1 to route11:
 
 * This dataset has a total number of `r nrow(ny_df)` observations and `r ncol(ny_df)` columns.
 * We clean the columns and recode 'entry' from a character variable into a logical variable.
 * This dataset is not tidy, especially for rounte data.
 
-#Tidy data
+## Tidy data
 
 ```{r}
 ny_tidy = 
@@ -150,6 +150,102 @@ ny_df %>% distinct(station_name, line, ada) %>% filter(ada == TRUE) %>% nrow
 * There are `r ny_df %>% distinct(station_name, line) %>% nrow` distinct stations
 * `r ny_df %>% distinct(station_name, line, ada) %>% filter(ada == TRUE) %>% nrow ` are ADA compliant
 * `r (ny_tidy %>% filter(vending == 'NO') %>% summarise(sum(entry) / n()))*100` percent of station entrances/exits without vending allow entrance.
+
+
+# Problem 3
+
+## first question
+
+```{r}
+pols_df=
+  read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
+  janitor::clean_names() %>%
+  separate(mon, into = c("year", "month", "day"), sep = "-") %>% 
+  mutate_at(vars(month),as.numeric) %>% 
+  mutate(month = month.name[month]) %>% 
+  mutate(president=ifelse(prez_gop==1,"gop","dem")) %>% 
+  select(year, month, gov_gop, sen_gop, rep_gop, gov_dem, sen_dem, rep_dem, president)
+  
+  
+```
+```{r}
+pols_df
+```
+## Second question
+
+```{r}
+snp_df=
+  read_csv("./data/fivethirtyeight_datasets/snp.csv") %>% 
+  janitor::clean_names() %>%
+  separate(date, into = c("day", "month", "year"), sep = "/") %>% 
+  mutate_at(vars(month),as.numeric) %>% 
+  mutate(month = month.name[month]) %>%  
+  arrange(year,month) %>% 
+  relocate(year,month)
+```
+
+
+```{r}
+snp_df
+```
+
+## Third 
+
+```{r}
+unemployment_df=
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to="unemploy_rate") %>% 
+  mutate(month = apply(as.matrix(month),1,
+                       function(x) month.name[[
+                         match(x,str_to_lower(month.abb))]])) %>% 
+  mutate_at(vars(year),as.character)
+  
+
+```
+
+
+```{r}
+unemployment_df
+```
+
+
+## join datasets
+```{r}
+join_df = pols_df %>% 
+  left_join(snp_df,by = c("year","month")) %>% 
+  left_join(unemployment_df, by = c("year","month"))
+```
+
+```{r}
+join_df
+```
+
+## write something about the dataset
+* In pols_df, ranging from year `r min(pols_df$year)` to ``r max(pols_df$year)`. There are `r nrow(pols_df)` politicians and `r ncol(pols_df)` variables related to the number of national politicians who are democratic or republican at any given time: including prez_gop, gov_gop,	sen_gop,	rep_gop,	prez_dem,	gov_dem,	sen_dem,	rep_dem.
+* In snp_df, ranging from year `r min(snp_df$year)` to ``r max(snp_df$year)`. There are `r nrow(snp_df)` stocks and `r ncol(snp_df)` variables: "date" is the date of observation and "close" is the closed price of the stock on the date.
+* In unemployment_df, ranging from year `r min(unemployment_df$year)` to ``r max(unemployment_df$year)`. There are `r nrow(unemployment_df)` years and `r ncol(unemployment_df)` variables. The variables represent the percentage of unemployment in the month of the the year.
+* In join_df, I put all data into one dataset with left join, which makes empty variables for each observations to be NA. There are `r nrow(join_df)` observations and `r ncol(join_df)` variables, ranging from year `r min(join_df$year)` to ``r max(join_df$year)`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
